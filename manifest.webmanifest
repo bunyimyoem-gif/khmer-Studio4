@@ -1,0 +1,23 @@
+{
+  "name": "Khmer Studio",
+  "short_name": "Khmer Studio",
+  "description": "កម្មវិធីស្តាប់ បកប្រែ និងបកសំឡេងខ្មែរសម្រាប់វីដេអូ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070a1a",
+  "theme_color": "#070a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icons/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

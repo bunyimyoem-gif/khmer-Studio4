@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Khmer Studio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Khmer Studio">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+:root{--bg:#070a1a;--panel:#0d1230;--panel2:#121847;--line:#2a3380;--txt:#e8ecff;--mute:#8d97d6;--pink:#ff3fa4;--violet:#8b5cf6;--blue:#3b82f6;--green:#10d9a0;--orange:#ff8a1f;--red:#ff4d6d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,"Noto Sans Khmer","Khmer UI",sans-serif;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:8px;padding:12px 14px;position:sticky;top:0;z-index:20;background:#070a1aee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.logo{font-weight:800;letter-spacing:.5px}.logo b{color:var(--pink)}
+.chip{margin-left:auto;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+main{max-width:720px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.h{font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}.sp{flex:1}
+.note{font-size:12px;color:var(--mute)}
+.player{position:relative;border:2px solid var(--orange);border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9}
+.player video{width:100%;height:100%;object-fit:contain;display:block}
+#overlay{position:absolute;left:0;right:0;text-align:center;padding:0 6%;pointer-events:none;white-space:pre-wrap;line-height:1.35}
+#overlay span{padding:2px 8px;border-radius:6px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+#drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--mute);text-align:center;cursor:pointer;padding:10px}
+#drop.hide{display:none}
+.bar{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.btn{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#161c55;color:var(--txt);font:inherit;cursor:pointer;min-height:44px}
+.btn.pri{background:linear-gradient(90deg,#7c3aed,#db2777);border-color:transparent;font-weight:700}
+.btn.red{background:#3a1030;border-color:var(--red);color:#ffc4d0}
+.btn.grn{background:#07352c;border-color:var(--green);color:#aaf5dd}
+.btn.sm{padding:6px 10px;min-height:36px;font-size:13px}
+.btn:disabled{opacity:.45}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.big .btn{width:100%}.big .full{grid-column:1/-1}
+input[type=range]{accent-color:var(--pink);width:100%}
+input,select,textarea{background:#0a0f33;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;font:inherit}
+textarea{resize:vertical;min-height:64px}
+label.note{display:block;margin-top:6px}
+.row{border:1px solid var(--line);border-radius:14px;padding:10px;background:#0a0f33;margin-top:8px}
+.row.act{border-color:var(--pink);box-shadow:0 0 14px #ff3fa455}
+.row.miss{border-color:var(--orange)}
+.row .t{display:grid;grid-template-columns:auto 1fr auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.row .t input,.row .t select{padding:5px 7px;font-size:12px;font-variant-numeric:tabular-nums}
+.row .a{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+details.card>summary{cursor:pointer;font-weight:700;list-style:none}
+details.card>summary::-webkit-details-marker{display:none}
+details.card[open]>summary{margin-bottom:8px}
+.rhub{display:flex;align-items:center;gap:10px;margin:8px 0}.rorb{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;font:800 13px system-ui;color:#e879f9;background:#0a0d2e;border:2px solid #7c3aed}
+.rhub.run .rorb{animation:rp 1.2s ease-in-out infinite}@keyframes rp{50%{box-shadow:0 0 22px #22d3ee;border-color:#22d3ee}}
+#klist .rcard{position:relative;padding:8px 10px;border:1px solid #2a3175;border-radius:12px;background:#0b0f33;margin-top:6px}
+.rcard.run{border-color:#22d3ee}.rcard.ok{border-color:#2f6f57}.rcard.lim{border-color:#a16207}.rcard.bad{border-color:#9f1239}
+.rcard .rt{display:flex;justify-content:space-between;gap:6px;font-size:12px}.rcard .rs{font-size:11px;color:#9aa3d9;margin-top:2px}.rcard .chip{margin:0;font-weight:700}
+.rcard .btn{position:absolute;right:6px;bottom:6px;padding:0 8px;min-height:28px}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;background:#0b1038;border-top:2px solid var(--violet);padding:12px 14px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px #000a}
+#sheet.on{display:block}
+#sheet .ttl{font-weight:700}
+#sbar{height:8px;border-radius:9px;background:#ffffff18;overflow:hidden;margin:8px 0}#sbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#7c3aed,#ff3fa4);transition:width .3s}
+#slog{max-height:90px;overflow:auto;font:11px/1.5 ui-monospace,monospace;color:#7ee7b6;background:#05040d;border-radius:8px;padding:6px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:60;background:#1b2160;border:1px solid var(--violet);padding:10px 14px;border-radius:12px;max-width:92%;display:none;text-align:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dub-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:99px;background:#161c55;border:1px solid var(--line)}
+.dub-badge.on{border-color:var(--green);color:#aaf5dd;background:#07352c}
+</style>
+</head>
+<body>
+<header><div class="logo">KHMER<b>STUDIO</b> <span class="note">Mobile</span></div><span class="chip" id="chip">0 key</span></header>
+
+<main>
+  <button class="btn pri full" id="b_install" style="display:none;width:100%;margin-bottom:0">📲 ដំឡើងជាកម្មវិធីលើទូរស័ព្ទ</button>
+  <div class="card">
+    <div class="player" id="player">
+      <video id="vid" playsinline controls controlslist="nodownload"></video>
+      <div id="overlay"><span></span></div>
+      <div id="drop"><div style="font-size:38px">🎞</div><b>ចុចដើម្បីជ្រើសវីដេអូ</b><div class="note">(ជ្រើសពីវិចិត្រសាល ឬ file)</div></div>
+    </div>
+    <input type="file" id="vidin" accept="video/*,audio/*" hidden>
+    <input type="file" id="srtin" accept=".srt,.vtt,.txt" hidden>
+    <div class="bar" style="justify-content:space-between">
+      <span class="dub-badge" id="dub_status">🔇 បកសំឡេង៖ បិទ</span>
+      <label class="note" style="margin:0"><input type="checkbox" id="duck_bg" checked style="width:auto"> បន្ថយសំឡេងដើមពេលនិយាយ</label>
+    </div>
+    <div class="big">
+      <button class="btn" id="b_open">🎞 បើកវីដេអូ</button>
+      <button class="btn" id="b_imp">⬆ នាំចូល SRT</button>
+      <button class="btn pri full" id="b_dub_play">🎬 បកសំឡេងចូលវីដេអូ (ចាក់ផ្ទាល់តាមតួអង្គ)</button>
+      <button class="btn grn full" id="b_export_mp4">📦 បង្កើតវីដេអូបកសំឡេង MP4 (តាម Server / JSON)</button>
+    </div>
+    <div id="export_box"></div>
+  </div>
+
+  <div class="card">
+    <div class="h">⚡ ធ្វើការ</div>
+    <div class="two">
+      <div><div class="note">ភាសានិយាយក្នុងវីដេអូ</div>
+        <select id="lang"><option value="auto">Auto</option><option value="zh">中文 Chinese</option><option value="en">English</option><option value="ja">日本語 Japanese</option><option value="ko">한국어 Korean</option><option value="th">ไทย Thai</option><option value="vi">Tiếng Việt</option><option value="ru">Русский</option></select></div>
+      <div><div class="note">ម៉ាស៊ីនបកប្រែ</div>
+        <select id="engine"><option value="gemini">Gemini (ត្រូវការ key)</option><option value="free">Google ឥតគិតថ្លៃ (គ្មាន key)</option></select></div>
+    </div>
+    <label class="note"><input type="checkbox" id="listen_km" checked style="width:auto"> ពេលស្តាប់ ឲ្យបកជាខ្មែរភ្លាមតែម្តង (Gemini)</label>
+    <div class="big">
+      <button class="btn pri full" id="b_listen">🎙 ស្តាប់ និង ដាក់អក្សរ (Gemini)</button>
+      <button class="btn pri" id="b_tr">🌐 បកជាខ្មែរ</button>
+      <button class="btn grn" id="b_dl">⬇ ទាញ SRT</button>
+      <button class="btn" id="b_copy">📋 ចម្លងអត្ថបទ</button>
+      <button class="btn red" id="b_clr">🗑 លុបទាំងអស់</button>
+    </div>
+    <div class="note" style="margin-top:8px">ចំណាំ៖ ទុកទំព័រនេះបើកមុខជានិច្ចពេលកំពុងធ្វើការ ហើយត្រូវមានអ៊ីនធឺណិត។</div>
+  </div>
+
+  <div class="card">
+    <div class="h">💬 អក្សររត់ <span class="note" id="cnt">0 បន្ទាត់</span><span class="sp"></span><button class="btn sm" id="b_add">＋ បន្ថែម</button></div>
+    <div id="list"></div>
+  </div>
+
+  <details class="card" id="gemcard">
+    <summary>🔑 Gemini API Key (Router)</summary>
+    <div class="note">1 Gmail = 1 key ឥតគិតថ្លៃ។ ដាក់ច្រើន key ហើយ router នឹងប្តូរ key/model ដោយស្វ័យប្រវត្តិពេលដល់ limit។ Key រក្សាទុកតែក្នុងទូរស័ព្ទនេះ។</div>
+    <div id="gembox">
+      <div class="note" style="margin-top:8px">Models (មួយបន្ទាត់មួយ model) <span id="mcnt"></span></div>
+      <textarea id="gmodels" rows="4" style="font-family:monospace;font-size:12px"></textarea>
+      <div class="bar"><button class="btn sm pri" id="m_load">🔄 ទាញ model ពី key</button><button class="btn sm" id="m_reset">Reset</button></div>
+      <div id="mstat" class="note"></div>
+      <div class="note" style="margin-top:8px">API Keys (មួយបន្ទាត់មួយ key) <span id="kcnt"></span></div>
+      <textarea id="knew" rows="3" placeholder="key ទី១&#10;key ទី២"></textarea>
+      <div class="bar"><a class="btn sm pri" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">🔑 យក key ឥតគិតថ្លៃ</a><button class="btn sm" id="k_add">＋ បន្ថែម</button><button class="btn sm" id="k_test">🧪 សាក key</button><button class="btn sm red" id="k_clear">លុបទាំងអស់</button></div>
+      <div id="rhub" class="rhub"><div class="rorb">AI</div><div id="rsum" class="note"></div></div>
+      <label class="note"><input type="checkbox" id="g_fb" style="width:auto"> Auto fallback</label>
+      <label class="note"><input type="checkbox" id="g_sp" style="width:auto"> បកស្របគ្នាតាមច្រើន key</label>
+      <label class="note"><input type="checkbox" id="g_th" style="width:auto"> 🧠 ឲ្យ Gemini គិត (យឺតជាង)</label>
+      <div id="klist"></div>
+    </div>
+  </details>
+
+  <details class="card">
+    <summary>🎨 រចនាអក្សរ & សំឡេងបក (មើលជាមុន)</summary>
+    <div class="note">ទំហំ <span id="v_fs"></span></div><input type="range" id="fs" min="12" max="90" value="34">
+    <div class="note">ទីតាំង (ពីក្រោម %) <span id="v_pos"></span></div><input type="range" id="pos" min="2" max="90" value="10">
+    <div class="note">ល្បឿនសំឡេងអាន (🔊) <span id="v_sr"></span></div><input type="range" id="srate" min="5" max="16" value="11">
+    <div class="note" style="margin-top:6px">Server URL (ស្រេចចិត្ត សម្រាប់ Export MP4 តាម Python dub_server.py)</div>
+    <input id="dub_srv" placeholder="http://127.0.0.1:5000">
+  </details>
+</main>
+
+<div id="sheet"><div class="ttl" id="stitle">កំពុងដំណើរការ…</div><div class="note" id="ssub"></div><div id="sbar"><i></i></div><div id="slog"></div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=(m,ms=3500)=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',ms)};
+const pad=(n,l=2)=>String(Math.floor(n)).padStart(l,'0');
+const fmt=(s,ms=true)=>{s=Math.max(0,s);const h=s/3600|0,m=(s%3600)/60|0,x=s%60;return `${pad(h)}:${pad(m)}:${pad(x)}`+(ms?'.'+pad(Math.round((x%1)*1000),3):'')};
+const fmtSrt=s=>fmt(s).replace('.',',');
+function parseT(t){const m=t.trim().replace(',','.').match(/^(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$/);return m?(+(m[1]||0))*3600+(+m[2])*60+parseFloat(m[3]):NaN}
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const ROLE_OPTS=[
+  ['','តួស្វ័យប្រវត្តិ'],
+  ['male','👨 ប្រុសពេញវ័យ'],
+  ['female','👩 ស្រីពេញវ័យ'],
+  ['boy','👦 ក្មេងប្រុស'],
+  ['girl','👧 ក្មេងស្រី'],
+  ['oldm','👴 ចាស់ប្រុស'],
+  ['oldw','👵 ចាស់ស្រី']
+];
+
+const S={cues:[],file:null,uid:1,preview:true,pcm:null,pcmFor:null,tgt:'km',chk:false,dubMode:false,lastSpokenId:-1};
+const vid=$('#vid');
+try{const savedSrv=localStorage.getItem('ks_dub_srv');if(savedSrv)$('#dub_srv').value=savedSrv}catch(e){}
+$('#dub_srv').onchange=()=>{try{localStorage.setItem('ks_dub_srv',$('#dub_srv').value.trim())}catch(e){}};
+
+function sortCues(){S.cues.sort((a,b)=>a.start-b.start)}
+function save(){try{localStorage.setItem('ks_cues',JSON.stringify(S.cues))}catch(e){}}
+function setCues(arr){S.cues=arr.map(c=>({id:S.uid++,start:c.start,end:c.end,text:c.text,role:c.role||''}));S.lastSpokenId=-1;sortCues();renderList();save()}
+try{const j=JSON.parse(localStorage.getItem('ks_cues')||'[]');if(j.length){S.cues=j;S.uid=Math.max(...j.map(c=>c.id||0))+1}}catch(e){}
+
+const STAGES={gem:'🌐 កំពុងបកប្រែ…',gemdub:'🎙 កំពុងស្តាប់ + បក…',gemls:'🎙 កំពុងស្តាប់…',free:'🌐 កំពុងបកប្រែ (Google)…',dub:'🎬 កំពុងបង្កើតវីដេអូបកសំឡេង…',gen:'កំពុងដំណើរការ…'};
+const AI={open:false,t0:0,tm:null,wl:null};
+function aiOpen(){if(AI.open)return;AI.open=true;AI.t0=Date.now();$('#slog').innerHTML='';$('#sheet').classList.add('on');
+  clearInterval(AI.tm);AI.tm=setInterval(()=>{const t=Math.floor((Date.now()-AI.t0)/1000);$('#ssub').textContent=`ប្រើពេល ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')} · សូមកុំបិទទំព័រ`},500);
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>AI.wl=w).catch(()=>{})}catch(e){}}
+function aiStage(k){aiOpen();$('#stitle').textContent=STAGES[k]||STAGES.gen}
+function aiProg(p){aiOpen();$('#sbar').firstElementChild.style.width=Math.max(3,p*100)+'%'}
+function aiLog(m){aiOpen();const L=$('#slog'),d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('en-GB')+'  '+m;L.appendChild(d);L.scrollTop=1e9}
+function setProg(p,msg){if(p==null)return;aiProg(p);if(msg)aiLog(msg)}
+function aiHide(){clearInterval(AI.tm);AI.open=false;$('#sheet').classList.remove('on');try{AI.wl&&AI.wl.release()}catch(e){}AI.wl=null}
+async function guard(fn){try{await fn()}catch(e){toast('✖ '+(e&&e.message||e),8000)}finally{aiHide()}}
+
+function loadVideo(f){
+  if(!f)return;S.file=f;S.pcm=null;vid.src=URL.createObjectURL(f);$('#drop').classList.add('hide');
+  vid.onloadedmetadata=()=>toast('✔ '+f.name);
+  vid.onerror=()=>toast('⚠ ទូរស័ព្ទមិនអាចចាក់វីដេអូនេះ (ទម្រង់ H.265/MKV?) — ប៉ុន្តែអាចនៅតែប្រើ SRT បាន',7000);
+}
+$('#drop').onclick=$('#b_open').onclick=()=>$('#vidin').click();
+$('#vidin').onchange=e=>{loadVideo(e.target.files[0]);e.target.value=''};
+
+function roleVoiceParams(role, cue){
+  const baseRate=Math.max(0.5,Math.min(2.0,(+$('#srate').value)/10));
+  const dur=Math.max(0.4,(cue.end||0)-(cue.start||0));
+  const estCharsPerSec=(cue.text||'').length/dur;
+  const fitBoost=estCharsPerSec>12?1.15:1.0;
+  let pitch=1.0, rate=baseRate*fitBoost;
+  if(role==='girl'){pitch=1.28;rate*=1.06}
+  else if(role==='boy'){pitch=1.18;rate*=1.08}
+  else if(role==='female'){pitch=1.08}
+  else if(role==='male'){pitch=0.92}
+  else if(role==='oldw'){pitch=0.98;rate*=0.94}
+  else if(role==='oldm'){pitch=0.78;rate*=0.92}
+  return {pitch:Math.max(0.5,Math.min(2.0,pitch)),rate:Math.max(0.5,Math.min(2.0,rate))};
+}
+
+function speak(text, role='', cue=null){
+  if(!text||!text.trim())return;
+  if(!('speechSynthesis' in window))return toast('ទូរស័ព្ទនេះមិនគាំទ្រការអានសំឡេង');
+  const vs=speechSynthesis.getVoices(),v=vs.find(x=>/^km/i.test(x.lang));
+  if(!v)return toast('ទូរស័ព្ទមិនមានសំឡេងខ្មែរ — ដំឡើង «Speech Services by Google» ហើយទាញយកភាសាខ្មែរ',8000);
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.trim());
+  u.voice=v;u.lang=v.lang;
+  const pr=roleVoiceParams(role, cue||{start:0,end:2,text});
+  u.rate=pr.rate;u.pitch=pr.pitch;
+  if(S.dubMode && $('#duck_bg').checked && !vid.paused){
+    vid.volume=0.18;
+    u.onend=()=>{vid.volume=1};
+    u.onerror=()=>{vid.volume=1};
+  }
+  speechSynthesis.speak(u);
+}
+
+let lastAct=-1;
+function showCue(){
+  const t=vid.currentTime||0,c=S.cues.find(c=>t>=c.start&&t<c.end),sp=$('#overlay span');
+  if(c&&S.preview&&c.text){sp.textContent=c.text;sp.style.display='inline'}else sp.style.display='none';
+  const id=c?c.id:-1;
+  if(id!==lastAct){
+    lastAct=id;
+    $$('.row').forEach(r=>r.classList.toggle('act',+r.dataset.id===id));
+    if(S.dubMode && c && c.text && c.id!==S.lastSpokenId && !vid.paused){
+      S.lastSpokenId=c.id;
+      speak(c.text, c.role||'', c);
+    }
+  }
+}
+vid.addEventListener('timeupdate',showCue);
+vid.addEventListener('seeked',()=>{S.lastSpokenId=-1;showCue()});
+vid.addEventListener('play',()=>{if(S.dubMode)showCue()});
+vid.addEventListener('pause',()=>{vid.volume=1;if(S.dubMode&&'speechSynthesis' in window)speechSynthesis.cancel()});
+
+function updateDubBadge(){
+  const b=$('#dub_status');
+  if(S.dubMode){b.classList.add('on');b.textContent='🔊 បកសំឡេង៖ កំពុងបើក (តាមតួអង្គ)'}
+  else{b.classList.remove('on');b.textContent='🔇 បកសំឡេង៖ បិទ'}
+}
+
+$('#b_dub_play').onclick=()=>{
+  if(!S.cues.length)return toast('មិនទាន់មានអក្សរសម្រាប់បកសំឡេង');
+  S.dubMode=!S.dubMode;
+  updateDubBadge();
+  if(S.dubMode){
+    S.lastSpokenId=-1;
+    if(S.file){vid.play().catch(()=>{})}
+    showCue();
+    toast('✔ បានបើកមុខងារបកសំឡេងតាមតួអង្គពេលចាក់វីដេអូ');
+  }else{
+    vid.volume=1;
+    if('speechSynthesis' in window)speechSynthesis.cancel();
+    toast('បានបិទមុខងារបកសំឡេង');
+  }
+};
+
+$('#b_export_mp4').onclick=()=>guard(async()=>{
+  if(!S.cues.length)return toast('មិនទាន់មានអក្សរសម្រាប់បញ្ចូលសំឡេង');
+  const srv=($('#dub_srv').value||'').trim().replace(/\/$/,'');
+  const payload={keep_bg:$('#duck_bg').checked,cues:S.cues.map((c,i)=>({idx:i+1,start:c.start,end:c.end,text:c.text,role:c.role||''}))};
+  if(srv){
+    aiStage('dub');aiProg(0.15);aiLog('កំពុងផ្ញើទៅ Server ('+srv+') ដើម្បីបង្កើត MP4…');
+    const fd=new FormData();
+    if(S.file)fd.append('video',S.file);
+    fd.append('payload',JSON.stringify(payload));
+    const res=await fetch(srv+'/api/dub',{method:'POST',body:fd});
+    if(!res.ok)throw new Error('Server ឆ្លើយតប HTTP '+res.status);
+    const ct=res.headers.get('content-type')||'';
+    if(ct.includes('video')||ct.includes('audio')){
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      const ext=ct.includes('audio')?'mp3':'mp4';
+      $('#export_box').innerHTML=`<div class="card" style="margin-top:8px"><div class="note">✔ បង្កើតបានរួចរាល់</div><${ext==='mp3'?'audio':'video'} controls src="${url}" style="width:100%;margin-top:6px;border-radius:10px"></${ext==='mp3'?'audio':'video'}><a class="btn pri full" style="display:block;text-align:center;text-decoration:none;margin-top:8px" href="${url}" download="khmer_dubbed.${ext}">⬇ ទាញយក ${ext.toUpperCase()}</a></div>`;
+      toast('✔ បង្កើតវីដេអូបកសំឡេងរួចរាល់');
+      return;
+    }
+  }
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  $('#export_box').innerHTML=`<div class="card" style="margin-top:8px"><div class="note">ទាញយក <b>dub_project.json</b> (មានពេលចាប់ផ្ដើម/បញ្ចប់ តួអង្គ និងអត្ថបទខ្មែរ) ឬដាក់ Server URL ក្នុង «រចនាអក្សរ» ដើម្បី Render MP4 ផ្ទាល់។</div><a class="btn grn full" style="display:block;text-align:center;text-decoration:none;margin-top:8px" href="${url}" download="dub_project.json">⬇ ទាញយក dub_project.json</a></div>`;
+  toast('✔ បានរៀបចំឯកសារបកសំឡេង dub_project.json');
+});
+
+function styleOv(){const sp=$('#overlay span'),h=$('#player').clientHeight||200;
+  sp.style.fontSize=(+$('#fs').value*h/720)+'px';sp.style.color='#fff';sp.style.background='rgba(0,0,0,.55)';
+  $('#overlay').style.bottom=$('#pos').value+'%';$('#v_fs').textContent=$('#fs').value;$('#v_pos').textContent=$('#pos').value;$('#v_sr').textContent=($('#srate').value/10).toFixed(1)+'x'}
+['fs','pos','srate'].forEach(i=>$('#'+i).oninput=styleOv);addEventListener('resize',styleOv);styleOv();
+
+function parseSRT(txt){
+  txt=txt.replace(/^﻿/,'').replace(//g,'').replace(/^WEBVTT.*
+/,'');
+  const out=[];
+  for(const blk of txt.split(/
+\s*
+/)){
+    const ln=blk.split('
+').filter(x=>x.trim()!=='');
+    const i=ln.findIndex(l=>l.includes('-->'));if(i<0)continue;
+    const [a,b]=ln[i].split('-->');
+    const s=parseT(a.trim()),e=parseT(b.trim().split(/\s/)[0]);
+    if(isNaN(s)||isNaN(e))continue;
+    out.push({start:s,end:e,text:ln.slice(i+1).join('
+').replace(/<[^>]+>/g,'')});
+  }
+  return out;
+}
+function toSRT(){return S.cues.map((c,i)=>`${i+1}
+${fmtSrt(c.start)} --> ${fmtSrt(c.end)}
+${c.text}
+`).join('
+')}
+$('#b_imp').onclick=()=>$('#srtin').click();
+$('#srtin').onchange=async e=>{const f=e.target.files[0];if(!f)return;const a=parseSRT(await f.text());setCues(a);toast(`✔ នាំចូល ${a.length} បន្ទាត់`);e.target.value=''};
+$('#b_dl').onclick=()=>{
+  if(!S.cues.length)return toast('មិនទាន់មានអក្សរ');
+  const base=S.file?S.file.name.replace(/\.[^.]+$/,''):'subtitle';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+toSRT()],{type:'text/plain;charset=utf-8'}));a.download=base+'.srt';document.body.appendChild(a);a.click();a.remove()};
+$('#b_copy').onclick=async()=>{if(!S.cues.length)return toast('មិនទាន់មានអក្សរ');const t=S.cues.map(c=>c.text).join('
+');
+  try{await navigator.clipboard.writeText(t);toast('✔ ចម្លងរួច')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('✔ ចម្លងរួច')}};
+$('#b_clr').onclick=()=>{if(S.cues.length&&confirm('លុបអក្សរទាំងអស់?')){S.cues=[];S.dubMode=false;updateDubBadge();renderList();save()}};
+$('#b_add').onclick=()=>{const t=vid.currentTime||0;S.cues.push({id:S.uid++,start:t,end:t+2,text:'',role:''});sortCues();renderList();save()};
+
+function renderList(){
+  const L=$('#list');L.innerHTML='';$('#cnt').textContent=S.cues.length+' បន្ទាត់';
+  if(!S.cues.length)L.innerHTML='<div class="note" style="padding:10px;text-align:center">មិនទាន់មានអក្សរ — ចុច «ស្តាប់ និង ដាក់អក្សរ» ឬ «នាំចូល SRT»</div>';
+  S.cues.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='row';d.dataset.id=c.id;
+    if(S.chk&&/\p{L}/u.test(c.text)&&!/[ក-៿]/.test(c.text))d.classList.add('miss');
+    d.innerHTML=`<div class="t"><b class="note">#${i+1}</b><input value="${fmt(c.start)}" data-k="start" inputmode="decimal"><span class="note">→</span><input value="${fmt(c.end)}" data-k="end" inputmode="decimal"><select data-k="role">${ROLE_OPTS.map(([val,lbl])=>`<option value="${val}" ${(c.role||'')===val?'selected':''}>${lbl}</option>`).join('')}</select></div>
+      <textarea rows="2">${esc(c.text)}</textarea>
+      <div class="a"><button class="btn sm" data-a="go">▶</button><button class="btn sm" data-a="tr">🌐</button><button class="btn sm" data-a="say">🔊</button><button class="btn sm" data-a="split">✂</button><button class="btn sm red" data-a="del">✕</button></div>`;
+    d.querySelectorAll('input').forEach(inp=>inp.onchange=()=>{const v=parseT(inp.value);if(!isNaN(v)){c[inp.dataset.k]=v;sortCues();renderList();save()}else inp.value=fmt(c[inp.dataset.k])});
+    d.querySelector('select[data-k=role]').onchange=e=>{c.role=e.target.value;save()};
+    d.querySelector('textarea').oninput=e=>{c.text=e.target.value;save();showCue()};
+    d.querySelector('[data-a=go]').onclick=()=>{if(S.file){vid.currentTime=c.start;vid.play().catch(()=>{});window.scrollTo({top:0,behavior:'smooth'})}};
+    d.querySelector('[data-a=say]').onclick=()=>speak(c.text,c.role||'',c);
+    d.querySelector('[data-a=tr]').onclick=()=>guard(async()=>{if(!c.text.trim())return;
+      if($('#engine').value==='gemini'){if(!G.keys.length)return toast('សូមបន្ថែម Gemini API key (ខាងក្រោម) ឬប្តូរទៅ Google ឥតគិតថ្លៃ');aiStage('gem');aiProg(0.1);const r=await gemOne(c.text,'km',c.end-c.start);if(r){c.text=r}}
+      else{const r=await gtxList([c.text],'km');c.text=r[0]}
+      renderList();save()});
+    d.querySelector('[data-a=del]').onclick=()=>{S.cues=S.cues.filter(x=>x!==c);renderList();save()};
+    d.querySelector('[data-a=split]').onclick=()=>{const ta=d.querySelector('textarea');const p=ta.selectionStart||Math.floor(c.text.length/2);
+      const m=c.start+(c.end-c.start)*(p/Math.max(1,c.text.length));
+      const n={id:S.uid++,start:m,end:c.end,text:c.text.slice(p).trim(),role:c.role||''};c.end=m;c.text=c.text.slice(0,p).trim();S.cues.push(n);sortCues();renderList();save()};
+    L.appendChild(d)});
+  lastAct=-2;showCue();
+}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const DEF_MODELS=['gemini-3.8-flash','gemini-flash-latest','gemini-flash-lite-latest','gemini-2.5-flash-lite','gemini-2.5-flash'];
+const G={keys:[],models:[...DEF_MODELS],badm:{},engine:'gemini',i:0,used:''};
+try{const j=JSON.parse(localStorage.getItem('ks_gem2')||'{}');
+  G.keys=(j.keys||[]).map(k=>({k,cool:{},bad:false,st:'',n:0}));
+  if(j.models&&j.models.length)G.models=j.models;G.engine=j.engine||G.engine;if(j.fb===false)G.fallback=false;if(j.sp===false)G.split=false;if(j.th)G.think=true}catch(e){}
+if(!G.keys.length){try{const o=JSON.parse(localStorage.getItem('ks_gem')||'{}');G.keys=(o.keys||[]).map(k=>({k,cool:{},bad:false,st:'',n:0}))}catch(e){}}
+function gSave(){try{localStorage.setItem('ks_gem2',JSON.stringify({keys:G.keys.map(x=>x.k),models:G.models,engine:G.engine,fb:G.fallback,sp:G.split,th:G.think}))}catch(e){}}
+const GURL='https://generativelanguage.googleapis.com/v1beta/';
+function liveModels(){return G.models.filter(m=>!G.badm[m])}
+const GS=(()=>{const d=new Date().toISOString().slice(0,10);try{const j=JSON.parse(localStorage.getItem('ks_gstats')||'{}');if(j.date===d)return j}catch(e){}return{date:d,counts:{}}})();
+function credit(key,n){if(!key)return;const id=key.k.slice(-6);GS.counts[id]=(GS.counts[id]||0)+n;try{localStorage.setItem('ks_gstats',JSON.stringify(GS))}catch(e){}gRender()}
+if(G.engine==='ollama')G.engine='gemini';
+function gRender(){
+  $('#engine').value=G.engine;
+  $('#gembox').style.display=G.engine==='gemini'?'block':'none';
+  if(document.activeElement!==$('#gmodels'))$('#gmodels').value=G.models.join('
+');
+  $('#mcnt').textContent=G.models.length+' models';
+  const bm=Object.keys(G.badm).filter(m=>G.badm[m]);
+  $('#mstat').textContent=bm.length?'⛔ មិនអាចប្រើ: '+bm.join(', '):'';
+  $('#kcnt').textContent=G.keys.length+' keys';
+  const top=liveModels()[0];const L=$('#klist');L.innerHTML='';
+  const lines=x=>GS.counts[x.k.slice(-6)]||0,tot=G.keys.reduce((s,x)=>s+lines(x),0);
+  const nrun=G.keys.filter(x=>x.run>0).length,nready=G.keys.filter(x=>!x.bad&&!(x.run>0)&&!((x.cool[top]||0)>Date.now())).length;
+  $('#rsum').innerHTML=`<b>${G.keys.length}</b> keys · 🟢 ${nready} ready · 🔵 ${nrun} running · <b>${tot}</b> lines today`;
+  $('#rhub').classList.toggle('run',nrun>0);$('#g_fb').checked=G.fallback!==false;$('#g_sp').checked=G.split!==false;$('#g_th').checked=!!G.think;
+  G.keys.forEach((x,i)=>{
+    const left=Math.max(0,Math.ceil(((x.cool[top]||0)-Date.now())/1000));
+    const st=x.bad?['❌ Invalid','bad']:x.run>0?['🔵 Running','run']:left>0?[`⏳ Limit ${left}s`,'lim']:['🟢 Ready','ok'];
+    const d=document.createElement('div');d.className='rcard '+st[1];
+    d.innerHTML=`<div class="rt"><span>Key #${i+1} <code>${esc(x.k.slice(0,4))}…${esc(x.k.slice(-4))}</code></span><span class="chip">${st[0]}</span></div><div class="rs">${lines(x)} lines today · ${x.n} calls${x.last?' · '+esc(x.last):''}</div>`;
+    const b=document.createElement('button');b.className='btn sm red';b.textContent='✕';b.onclick=()=>{G.keys.splice(i,1);gSave();gRender()};d.appendChild(b);L.appendChild(d);
+  });
+  $('#chip').textContent=G.keys.length+' key';
+}
+setInterval(()=>{if(G.keys.some(x=>x.run>0||Object.values(x.cool).some(t=>t>Date.now())))gRender()},1000);
+$('#g_fb').onchange=e=>{G.fallback=e.target.checked;gSave()};$('#g_sp').onchange=e=>{G.split=e.target.checked;gSave()};$('#g_th').onchange=e=>{G.think=e.target.checked;gSave()};
+$('#engine').onchange=e=>{G.engine=e.target.value;gSave();gRender()};
+$('#gmodels').onchange=e=>{G.models=e.target.value.split(/[\s,]+/).map(x=>x.trim().replace(/^models\//,'')).filter(Boolean);G.badm={};gSave();gRender()};
+$('#m_reset').onclick=()=>{G.models=[...DEF_MODELS];G.badm={};gSave();gRender()};
+$('#m_load').onclick=()=>guard(async()=>{
+  const k=G.keys.find(x=>!x.bad);if(!k)return toast('បន្ថែម API key សិន');
+  toast('កំពុងទាញបញ្ជី model…');
+  const r=await fetch(GURL+'models?pageSize=200',{headers:{'x-goog-api-key':k.k}});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+  const ms=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+    .map(m=>m.name.replace(/^models\//,'')).filter(n=>/^gemini/.test(n)&&!/tts|image|embed|live|audio|aqa|robotics|computer|native|vision|exp/i.test(n));
+  const rank=n=>/flash-lite/.test(n)?1:/flash/.test(n)?0:2;
+  ms.sort((a,b)=>rank(a)-rank(b)||b.localeCompare(a,undefined,{numeric:true}));
+  if(!ms.length)throw new Error('រកមិនឃើញ model');
+  G.models=ms;G.badm={};gSave();gRender();toast(`✔ ទាញបាន ${ms.length} models`);
+});
+$('#k_add').onclick=()=>{
+  const ks=$('#knew').value.split(/[\s,;]+/).map(x=>x.trim()).filter(x=>/^[\w\-.]{20,}$/.test(x));
+  let added=0;ks.forEach(k=>{if(!G.keys.some(x=>x.k===k)){G.keys.push({k,cool:{},bad:false,st:'',n:0});added++}});
+  $('#knew').value='';gSave();gRender();toast(added?`✔ Added ${added} key(s)`:'រកមិនឃើញ key ត្រឹមត្រូវ (ត្រូវវែងយ៉ាងតិច 20 តួ គ្មានចន្លោះ)');
+};
+$('#k_clear').onclick=()=>{if(confirm('Remove all API keys?')){G.keys=[];gSave();gRender()}};
+async function gemCall(body,info){
+  for(let tries=0;tries<80;tries++){
+    const liveK=G.keys.filter(x=>!x.bad),liveM=liveModels();
+    if(!liveK.length)throw new Error('គ្មាន API key ដែលប្រើបាន — សូមបន្ថែម key');
+    if(!liveM.length)throw new Error('គ្មាន model ណាមួយអាចប្រើបាន — ចុច "ទាញ model ពី key"');
+    const now=Date.now();let pick=null;
+    for(const m of liveM){const av=liveK.filter(x=>(x.cool[m]||0)<=now);if(av.length){pick={m,key:av[G.i++%av.length]};break}}
+    if(!pick){
+      const w=Math.ceil((Math.min(...liveK.flatMap(x=>liveM.map(m=>x.cool[m]||0)))-now)/1000);
+      for(let s=w;s>0;s--){toast(`⏳ Key/Model ទាំងអស់ដល់ limit — រង់ចាំ ${s}s…`,1500);await sleep(1000)}
+      continue;
+    }
+    const {m,key}=pick,idx=G.keys.indexOf(key)+1;let r,j;key.run=(key.run||0)+1;gRender();
+    try{
+      r=await fetch(`${GURL}models/${encodeURIComponent(m)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key.k},body:JSON.stringify(body)});
+      j=await r.json().catch(()=>({}));
+    }catch(e){key.run--;throw new Error('Network error — ត្រូវការអ៊ីនធឺណិតសម្រាប់ Gemini')}
+    key.run--;key.n++;const msg=(j.error&&j.error.message)||'';
+    if(r.ok){key.st='✅ ok';G.used=m;key.last=m;if(info){info.key=key;info.model=m}gRender();return j}
+    if(r.status===400&&/thinking/i.test(msg)&&body.generationConfig&&body.generationConfig.thinkingConfig){delete body.generationConfig.thinkingConfig;continue}
+    if(r.status===404||(r.status===400&&/no longer available|not found|not supported/i.test(msg))){
+      G.badm[m]=true;toast(`⛔ Model ${m} មិនអាចប្រើ → សាក model បន្ទាប់`);gRender();continue}
+    if(r.status===429||/quota|rate.?limit/i.test(msg)){
+      if(G.fallback===false)throw new Error(`Key #${idx} ដល់ limit (Auto fallback បិទ)`);
+      const mm=msg.match(/retry in ([\d.]+)s/i);key.cool[m]=Date.now()+Math.ceil((mm?+mm[1]:60)*1000)+1000;
+      toast(`⚠ Key #${idx} · ${m} ដល់ limit → ប្តូរ`);gRender();continue}
+    if(/API key not valid|API_KEY_INVALID/i.test(msg)||r.status===401||(r.status===403&&/key|permission|denied/i.test(msg))){
+      key.bad=true;toast(`❌ Key #${idx} មិនត្រឹមត្រូវ/ត្រូវបានហាម: ${msg.slice(0,80)}`);gRender();continue}
+    if(r.status>=500){key.cool[m]=Date.now()+4000;await sleep(1500);continue}
+    throw new Error(`Gemini ${r.status} (${m}): ${msg.slice(0,200)}`);
+  }
+  throw new Error('Gemini: ព្យាយាមច្រើនដងពេក');
+}
+async function gemTranslate(texts,dst,onProg,secs){
+  const names={km:'Khmer (ភាសាខ្មែរ)',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'},L=names[dst]||dst;
+  const out=[...texts],idx=texts.map((t,i)=>/[\p{L}\p{N}]/u.test(t)?i:-1).filter(i=>i>=0);
+  const ok=i=>dst!=='km'||/[ក-៿]/.test(out[i]);
+  async function run(list,B,strict,prog){
+    const jobs=[];for(let k=0;k<list.length;k+=B)jobs.push(k);let doneN=0;
+    const C=prog&&G.split!==false?Math.max(1,Math.min(6,G.keys.filter(x=>!x.bad).length)):1;
+    const one=async k=>{
+      const part=list.slice(k,k+B),arr=part.map(i=>({text:texts[i],seconds:+((secs&&secs[i])||2).toFixed(1)}));
+      const prompt=`You are a professional subtitle and dubbing translator. Translate the "text" of EVERY item in the JSON array below into natural, fluent ${L}. Rules: translate everything, never leave any source-language words (write names in ${L} script); the line will be spoken aloud, so keep it short enough to be spoken in about "seconds" seconds (about 11 characters per second at most) without losing the meaning; keep tone and names consistent${strict?'; a previous attempt left some lines untranslated, so be extra careful':''}. Return a JSON array of strings with EXACTLY ${arr.length} items in the same order.
+
+${JSON.stringify(arr)}`;
+      let res=null;const info={};
+      for(let a=0;a<3&&!res;a++){
+        const j=await gemCall({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.3,...(G.think?{}:{thinkingConfig:{thinkingBudget:0}}),responseMimeType:'application/json',responseSchema:{type:'ARRAY',items:{type:'STRING'}}}},info);
+        try{const t=j.candidates[0].content.parts.map(p=>p.text||'').join('');const p=JSON.parse(t);if(Array.isArray(p)&&p.length===arr.length)res=p}catch(e){}
+      }
+      if(!res){aiLog('Batch mismatch → retrying in smaller batches');if(part.length>1){const h2=Math.ceil(part.length/2);for(let q=0;q<part.length;q+=h2)await run(part.slice(q,q+h2),part.length,strict,false)}return}
+      part.forEach((i,n)=>out[i]=String(res[n]));credit(info.key,part.length);doneN+=part.length;
+      aiLog(`Translated ${doneN}/${list.length} lines · key #${G.keys.indexOf(info.key)+1}`);prog&&onProg&&onProg(Math.min(1,doneN/list.length));
+    };
+    await Promise.all(Array.from({length:C},async()=>{while(jobs.length)await one(jobs.shift())}));
+  }
+  await run(idx,20,false,true);
+  for(let pass=0;pass<2;pass++){
+    const bad=idx.filter(i=>!ok(i)||out[i].trim()===texts[i].trim());
+    if(!bad.length)break;await run(bad,6,true,false);
+  }
+  const still=idx.filter(i=>!ok(i)||out[i].trim()===texts[i].trim());
+  for(const i of still){aiLog(`Retrying line #${i+1} alone…`);try{const r=await gemOne(texts[i],dst,(secs&&secs[i])||2);if(r)out[i]=r}catch(e){}}
+  return out;
+}
+async function gemOne(text,dst,sec){
+  const names={km:'Khmer (ភាសាខ្មែរ)',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'},L=names[dst]||dst;
+  const j=await gemCall({contents:[{parts:[{text:`Translate this video subtitle line into natural, fluent ${L}. Never leave source-language words (write names in ${L} script). It will be spoken aloud in about ${(+sec||2).toFixed(1)} seconds, so keep it short. Output ONLY the translation, nothing else.
+
+${text}`}]}],generationConfig:{temperature:0.2,...(G.think?{}:{thinkingConfig:{thinkingBudget:0}})}});
+  return j.candidates[0].content.parts.map(p=>p.text||'').join('').trim().replace(/^["“”]+|["“”]+$/g,'');
+}
+$('#k_test').onclick=()=>guard(async()=>{
+  if(!G.keys.length)return toast('បន្ថែម key សិន');
+  for(const [n,x] of G.keys.entries()){
+    toast(`Testing key #${n+1}…`);x.bad=false;x.cool={};x.st='';
+    try{
+      for(const m of liveModels()){
+        const r=await fetch(`${GURL}models/${encodeURIComponent(m)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':x.k},body:JSON.stringify({contents:[{parts:[{text:'Say OK'}]}]})});
+        const j=await r.json().catch(()=>({}));const msg=(j.error&&j.error.message)||'';
+        if(r.ok){x.st='✅ works ('+m+')';break}
+        if(r.status===404||(r.status===400&&/no longer available|not found|not supported/i.test(msg))){G.badm[m]=true;continue}
+        if(r.status===429){x.cool[m]=Date.now()+60000;x.st='⏳ limit';break}
+        x.bad=true;x.st='❌ '+msg.slice(0,70);break;
+      }
+    }catch(e){x.st='network error'}
+  }
+  gRender();toast('Test finished');
+});
+gRender();
+
+async function gtxOne(t,dst){
+  const u='https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='+encodeURIComponent(dst)+'&dt=t&q='+encodeURIComponent(t);
+  for(let a=0;a<3;a++){try{const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();const o=d[0].map(x=>x&&x[0]||'').join('').trim();if(o)return o}catch(e){if(a===2)throw e;await sleep(1200+a*800)}}
+  return ''}
+async function gtxList(texts,dst,onProg){
+  const out=[...texts],idx=texts.map((t,i)=>/[\p{L}\p{N}]/u.test(t)?i:-1).filter(i=>i>=0),batches=[];let cur=[],len=0;
+  for(const i of idx){const t=texts[i].replace(/
+/g,' ').trim();if(cur.length&&len+t.length>1200){batches.push(cur);cur=[];len=0}cur.push([i,t]);len+=t.length+2}
+  if(cur.length)batches.push(cur);
+  let done=0,ok=0;
+  for(const b of batches){
+    let lines=[];try{lines=(await gtxOne(b.map(x=>x[1]).join('
+'),dst)).split('
+')}catch(e){if(!ok&&done===0)throw new Error('Google Translate មិនឆ្លើយតប (ពិនិត្យអ៊ីនធឺណិត ឬប្រើ Gemini)')}
+    if(lines.length===b.length){b.forEach(([i],n)=>{if(lines[n].trim()){out[i]=lines[n].trim();ok++}})}
+    else for(const [i,t] of b){try{const r=await gtxOne(t,dst);if(r){out[i]=r;ok++}}catch(e){}await sleep(250)}
+    done+=b.length;onProg&&onProg(done/Math.max(1,idx.length));await sleep(300)}
+  if(!ok&&idx.length)throw new Error('Google Translate មិនឆ្លើយតប');
+  return out}
+
+$('#b_tr').onclick=()=>guard(async()=>{
+  if(!S.cues.length)return toast('មិនទាន់មានអក្សរសម្រាប់បក');
+  const texts=S.cues.map(c=>c.text),secs=S.cues.map(c=>c.end-c.start);let tr;
+  if($('#engine').value==='gemini'){
+    if(!G.keys.length){$('#gemcard').open=true;return toast('សូមបន្ថែម Gemini API key ជាមុន (ឬប្តូរទៅ Google ឥតគិតថ្លៃ)')}
+    aiStage('gem');aiProg(0.02);aiLog(`បកប្រែ ${texts.length} បន្ទាត់ដោយ Gemini…`);
+    tr=await gemTranslate(texts,'km',p=>setProg(p),secs)
+  }else{aiStage('free');aiProg(0.02);tr=await gtxList(texts,'km',p=>setProg(p))}
+  S.cues.forEach((c,i)=>c.text=tr[i]);S.chk=true;renderList();save();
+  const left=S.cues.filter(c=>/\p{L}/u.test(c.text)&&!/[ក-៿]/.test(c.text)).length;
+  toast(left?`⚠ បកបាន តែនៅសល់ ${left} បន្ទាត់មិនទាន់ជាខ្មែរ (ពណ៌ទឹកក្រូច) — ចុចបកម្តងទៀត`:'✔ បកប្រែរួចគ្រប់បន្ទាត់',6000)});
+
+async function loadPCM(){
+  const f=S.file;if(!f)throw new Error('សូមបើកវីដេអូសិន');
+  if(S.pcm&&S.pcmFor===f)return S.pcm;
+  if(f.size>700*1024*1024)throw new Error('វីដេអូធំពេក (>700MB) សម្រាប់ទូរស័ព្ទ — សូមកាត់ឲ្យខ្លី ឬប្រើ «នាំចូល SRT»');
+  aiLog('កំពុងដកសំឡេងចេញពីវីដេអូ (ក្នុងទូរស័ព្ទ)…');
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('browser នេះមិនគាំទ្រការអានសំឡេង');
+  const ctx=new AC({sampleRate:16000});let ab;
+  try{ab=await ctx.decodeAudioData(await f.arrayBuffer())}catch(e){try{ctx.close()}catch(_){}throw new Error('ទូរស័ព្ទមិនអាចដកសំឡេងពីវីដេអូនេះ — សាក Chrome ឬប្រើ «នាំចូល SRT»')}
+  const n=ab.length,ch=ab.numberOfChannels,out=new Float32Array(n);
+  for(let c=0;c<ch;c++){const d=ab.getChannelData(c);for(let i=0;i<n;i++)out[i]+=d[i]/ch}
+  try{ctx.close()}catch(_){}
+  S.pcm={data:out,sr:ab.sampleRate};S.pcmFor=f;return S.pcm}
+function wavB64(p,t0,len){
+  const a=Math.max(0,Math.floor(t0*p.sr)),b=Math.min(p.data.length,Math.floor((t0+len)*p.sr)),n=Math.max(0,b-a);
+  const buf=new ArrayBuffer(44+n*2),v=new DataView(buf),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,p.sr,true);v.setUint32(28,p.sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const s=Math.max(-1,Math.min(1,p.data[a+i]));v.setInt16(44+i*2,s<0?s*32768:s*32767,true)}
+  const u=new Uint8Array(buf);let bin='';for(let i=0;i<u.length;i+=0x8000)bin+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(bin)}
+async function audioChunkB64(t0,len){return wavB64(await loadPCM(),t0,len)}
+const ROLE_SET=['female','male','girl','boy','oldw','oldm'];
+async function geminiListen(id,lang,to){
+  const dur=vid.duration||0;if(!dur)throw new Error('មិនស្គាល់រយៈពេលវីដេអូ');
+  const CH=45,chunks=[];for(let t0=0;t0<dur-0.3;t0+=CH)chunks.push(t0);
+  const L={km:'Khmer (ភាសាខ្មែរ)',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'}[to]||to,res=new Array(chunks.length);
+  let done=0;aiStage(to?'gemdub':'gemls');aiProg(0.02);
+  const C=G.split!==false?Math.max(1,Math.min(4,G.keys.filter(x=>!x.bad).length)):1,q=chunks.map((_,i)=>i);
+  const work=async i=>{
+    const t0=chunks[i],len=Math.min(CH,dur-t0);aiLog(`Listening ${Math.floor(t0)}s – ${Math.floor(t0+len)}s…`);
+    const b64=await audioChunkB64(t0,len);
+    const common=`start and end in seconds from the beginning of THIS clip (tight: start = the moment the voice begins, end = the moment it stops), speaker = one of female, male, girl, boy, oldw, oldm (adult woman, adult man, young girl, young boy, elderly woman, elderly man). Skip music and sound effects. Never skip the first sentence.`;
+    const prompt=to?`Listen to this ${len.toFixed(0)}-second audio clip${lang&&lang!=='auto'?' (spoken language: '+lang+')':''}. Write down EVERY spoken sentence, in order, and give each one its ${L} dubbing line. For every sentence return: ${common} text = a natural, fluent, SPOKEN ${L} translation that the character would really say, short enough to be spoken between start and end (at most about 11 characters per second: shorten the wording, never drop the meaning); never leave source-language words (write names in ${L} script). Return a JSON array.`
+      :`Transcribe ALL speech in this ${len.toFixed(0)}-second audio clip, sentence by sentence, in the language that is spoken${lang&&lang!=='auto'?' ('+lang+')':''}. Do NOT translate. For every sentence return: ${common} text = the exact words. Return a JSON array.`;
+    const info={},j=await gemCall({contents:[{parts:[{inline_data:{mime_type:'audio/wav',data:b64}},{text:prompt}]}],generationConfig:{temperature:to?0.3:0,...(G.think?{}:{thinkingConfig:{thinkingBudget:0}}),responseMimeType:'application/json',responseSchema:{type:'ARRAY',items:{type:'OBJECT',properties:{start:{type:'NUMBER'},end:{type:'NUMBER'},text:{type:'STRING'},speaker:{type:'STRING'}},required:['start','end','text']}}}},info);
+    let arr=[];try{arr=JSON.parse(j.candidates[0].content.parts.map(p=>p.text||'').join('').replace(/```json|```/g,'').trim())}catch(e){aiLog('⚠ could not read this chunk, skipped')}
+    const o=[];for(const x of arr){const s=Math.max(0,+x.start||0),e=Math.min(len,+x.end||0);if(!(x.text||'').trim()||e<=s)continue;
+      o.push({start:+(t0+s).toFixed(2),end:+(t0+e).toFixed(2),text:x.text.trim(),role:ROLE_SET.includes(x.speaker)?x.speaker:''})}
+    res[i]=o;credit(info.key,o.length);done++;aiLog(`${res.flat().length} lines so far · key #${G.keys.indexOf(info.key)+1}`);aiProg(Math.min(.95,done/chunks.length));
+  };
+  await Promise.all(Array.from({length:C},async()=>{while(q.length)await work(q.shift())}));
+  return res.flat().sort((a,b)=>a.start-b.start);
+}
+$('#b_listen').onclick=()=>guard(async()=>{
+  if(!S.file)return toast('សូមបើកវីដេអូសិន');
+  if(!G.keys.length){$('#gemcard').open=true;return toast('ការស្តាប់ត្រូវការ Gemini API key — បន្ថែមខាងក្រោម')}
+  if(!vid.duration)await new Promise(r=>{vid.addEventListener('loadedmetadata',r,{once:true});setTimeout(r,4000)});
+  const km=$('#listen_km').checked,lang=$('#lang').value;
+  aiStage(km?'gemdub':'gemls');aiProg(0.02);await loadPCM();
+  const g=await geminiListen(null,lang,km?'km':null);if(!g.length)return toast('✖ មិនឮសំឡេងនិយាយ');
+  setCues(g);S.chk=km;renderList();toast(`✔ បាន ${g.length} បន្ទាត់${km?' (ខ្មែរ)':' — ចុច «បកជាខ្មែរ»'}`,7000)});
+
+renderList();
+
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+let _ip=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e;const b=$('#b_install');if(b)b.style.display='block'});
+addEventListener('appinstalled',()=>{const b=$('#b_install');if(b)b.style.display='none';_ip=null;toast('✔ ដំឡើងកម្មវិធីរួច')});
+$('#b_install').onclick=async()=>{if(!_ip)return;_ip.prompt();await _ip.userChoice;_ip=null;$('#b_install').style.display='none'};
+</script>
+</body>
+</html>
