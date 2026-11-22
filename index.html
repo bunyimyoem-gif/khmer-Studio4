@@ -65,6 +65,8 @@ details.card[open]>summary{margin-bottom:8px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dub-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:99px;background:#161c55;border:1px solid var(--line)}
 .dub-badge.on{border-color:var(--green);color:#aaf5dd;background:#07352c}
+.sub-panel{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0a0f33;margin-top:8px}
+code.inline{background:#121847;padding:2px 6px;border-radius:6px;color:#a5f3fc;font-size:11px}
 </style>
 </head>
 <body>
@@ -94,16 +96,36 @@ details.card[open]>summary{margin-bottom:8px}
   </div>
 
   <div class="card">
-    <div class="h">⚡ ធ្វើការ</div>
-    <div class="two">
-      <div><div class="note">ភាសានិយាយក្នុងវីដេអូ</div>
-        <select id="lang"><option value="auto">Auto</option><option value="zh">中文 Chinese</option><option value="en">English</option><option value="ja">日本語 Japanese</option><option value="ko">한국어 Korean</option><option value="th">ไทย Thai</option><option value="vi">Tiếng Việt</option><option value="ru">Русский</option></select></div>
-      <div><div class="note">ម៉ាស៊ីនបកប្រែ</div>
-        <select id="engine"><option value="gemini">Gemini (ត្រូវការ key)</option><option value="free">Google ឥតគិតថ្លៃ (គ្មាន key)</option></select></div>
+    <div class="sub-panel" style="margin-top:0">
+      <div class="h" style="margin-bottom:6px">🎙 Speech-to-Text Engine</div>
+      <select id="stt_engine">
+        <option value="gemini_dub">⚡ Gemini Dub (ស្តាប់ + បកខ្មែរ ១ ជំហាន · លឿន · ត្រូវមាត់)</option>
+        <option value="gemini_listen">🎧 Gemini Listen (ស្តាប់យកអក្សរដើម + តួអង្គ)</option>
+        <option value="sensevoice">🔊 SenseVoice (Local / Server)</option>
+      </select>
+      <div class="note" style="margin-top:6px;line-height:1.5">
+        SenseVoice: <code class="inline">pip install funasr modelscope torch torchaudio</code> (ទាញម៉ូដែលលើកដំបូង)។ Gemini Listen ប្រើ API key/Router ខាងក្រោម ហើយដាក់ប្រុស/ស្រី/ក្មេង/ចាស់ឲ្យស្រាប់។
+      </div>
     </div>
-    <label class="note"><input type="checkbox" id="listen_km" checked style="width:auto"> ពេលស្តាប់ ឲ្យបកជាខ្មែរភ្លាមតែម្តង (Gemini)</label>
+
+    <div class="sub-panel">
+      <div class="h" style="margin-bottom:6px">✨ Translate engine · Gemini Router</div>
+      <div class="note" style="margin-bottom:6px;line-height:1.5">
+        1 Gmail = 1 key ឥតគិតថ្លៃ។ បន្ថែមច្រើន key (ពី Gmail ផ្សេងៗ) ហើយ router នឹងប្តូរ key និង model ដោយស្វ័យប្រវត្តិពេលដល់ limit។
+      </div>
+      <select id="engine">
+        <option value="gemini">Gemini API (online, គុណភាពល្អ)</option>
+        <option value="free">Google ឥតគិតថ្លៃ (គ្មាន key)</option>
+      </select>
+    </div>
+
+    <div class="bar" style="margin-top:10px">
+      <div style="flex:1;min-width:140px"><div class="note">ភាសានិយាយក្នុងវីដេអូ</div>
+        <select id="lang"><option value="auto">Auto</option><option value="zh">中文 Chinese</option><option value="en">English</option><option value="ja">日本語 Japanese</option><option value="ko">한국어 Korean</option><option value="th">ไทย Thai</option><option value="vi">Tiếng Việt</option><option value="ru">Русский</option></select></div>
+    </div>
+
     <div class="big">
-      <button class="btn pri full" id="b_listen">🎙 ស្តាប់ និង ដាក់អក្សរ (Gemini)</button>
+      <button class="btn pri full" id="b_listen">🎙 ស្តាប់ និង ដាក់អក្សរ</button>
       <button class="btn pri" id="b_tr">🌐 បកជាខ្មែរ</button>
       <button class="btn grn" id="b_dl">⬇ ទាញ SRT</button>
       <button class="btn" id="b_copy">📋 ចម្លងអត្ថបទ</button>
@@ -117,9 +139,9 @@ details.card[open]>summary{margin-bottom:8px}
     <div id="list"></div>
   </div>
 
-  <details class="card" id="gemcard">
+  <details class="card" id="gemcard" open>
     <summary>🔑 Gemini API Key (Router)</summary>
-    <div class="note">1 Gmail = 1 key ឥតគិតថ្លៃ។ ដាក់ច្រើន key ហើយ router នឹងប្តូរ key/model ដោយស្វ័យប្រវត្តិពេលដល់ limit។ Key រក្សាទុកតែក្នុងទូរស័ព្ទនេះ។</div>
+    <div class="note">1 Gmail = 1 key ឥតគិតថ្លៃ។ ដាក់ច្រើន key ហើយ router នឹងប្តូរ key/model ដោយស្វ័យប្រវត្តិពេលដល់ limit។ Key រក្សាទុកតែក្នុង Browser/ទូរស័ព្ទនេះ។</div>
     <div id="gembox">
       <div class="note" style="margin-top:8px">Models (មួយបន្ទាត់មួយ model) <span id="mcnt"></span></div>
       <textarea id="gmodels" rows="4" style="font-family:monospace;font-size:12px"></textarea>
@@ -141,7 +163,7 @@ details.card[open]>summary{margin-bottom:8px}
     <div class="note">ទំហំ <span id="v_fs"></span></div><input type="range" id="fs" min="12" max="90" value="34">
     <div class="note">ទីតាំង (ពីក្រោម %) <span id="v_pos"></span></div><input type="range" id="pos" min="2" max="90" value="10">
     <div class="note">ល្បឿនសំឡេងអាន (🔊) <span id="v_sr"></span></div><input type="range" id="srate" min="5" max="16" value="11">
-    <div class="note" style="margin-top:6px">Server URL (ស្រេចចិត្ត សម្រាប់ Export MP4 តាម Python dub_server.py)</div>
+    <div class="note" style="margin-top:6px">Server URL (សម្រាប់ SenseVoice ឬ Export MP4 តាម Python dub_server.py)</div>
     <input id="dub_srv" placeholder="http://127.0.0.1:5000">
   </details>
 </main>
@@ -180,7 +202,7 @@ function save(){try{localStorage.setItem('ks_cues',JSON.stringify(S.cues))}catch
 function setCues(arr){S.cues=arr.map(c=>({id:S.uid++,start:c.start,end:c.end,text:c.text,role:c.role||''}));S.lastSpokenId=-1;sortCues();renderList();save()}
 try{const j=JSON.parse(localStorage.getItem('ks_cues')||'[]');if(j.length){S.cues=j;S.uid=Math.max(...j.map(c=>c.id||0))+1}}catch(e){}
 
-const STAGES={gem:'🌐 កំពុងបកប្រែ…',gemdub:'🎙 កំពុងស្តាប់ + បក…',gemls:'🎙 កំពុងស្តាប់…',free:'🌐 កំពុងបកប្រែ (Google)…',dub:'🎬 កំពុងបង្កើតវីដេអូបកសំឡេង…',gen:'កំពុងដំណើរការ…'};
+const STAGES={gem:'🌐 កំពុងបកប្រែ…',gemdub:'⚡ Gemini Dub (ស្តាប់ + បកខ្មែរ)…',gemls:'🎧 Gemini Listen (ស្តាប់យកអក្សរដើម)…',sensevoice:'🔊 SenseVoice កំពុងស្តាប់…',free:'🌐 កំពុងបកប្រែ (Google)…',dub:'🎬 កំពុងបង្កើតវីដេអូបកសំឡេង…',gen:'កំពុងដំណើរការ…'};
 const AI={open:false,t0:0,tm:null,wl:null};
 function aiOpen(){if(AI.open)return;AI.open=true;AI.t0=Date.now();$('#slog').innerHTML='';$('#sheet').classList.add('on');
   clearInterval(AI.tm);AI.tm=setInterval(()=>{const t=Math.floor((Date.now()-AI.t0)/1000);$('#ssub').textContent=`ប្រើពេល ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')} · សូមកុំបិទទំព័រ`},500);
@@ -574,14 +596,34 @@ async function geminiListen(id,lang,to){
   await Promise.all(Array.from({length:C},async()=>{while(q.length)await work(q.shift())}));
   return res.flat().sort((a,b)=>a.start-b.start);
 }
+
+async function senseVoiceListen(lang){
+  const srv=($('#dub_srv').value||'').trim().replace(/\/$/,'');
+  if(!srv)throw new Error('សូមដាក់ Server URL ក្នុង «រចនាអក្សរ» ដើម្បីប្រើ SenseVoice');
+  aiStage('sensevoice');aiProg(0.2);aiLog('កំពុងផ្ញើទៅ SenseVoice Server…');
+  const fd=new FormData();
+  fd.append('video',S.file);
+  fd.append('lang',lang||'auto');
+  const res=await fetch(srv+'/api/transcribe',{method:'POST',body:fd});
+  if(!res.ok)throw new Error('SenseVoice server error HTTP '+res.status);
+  const data=await res.json();
+  return (data.cues||[]).map(x=>({start:+x.start||0,end:+x.end||0,text:String(x.text||'').trim(),role:ROLE_SET.includes(x.role)?x.role:''})).filter(x=>x.text);
+}
+
 $('#b_listen').onclick=()=>guard(async()=>{
   if(!S.file)return toast('សូមបើកវីដេអូសិន');
+  const mode=$('#stt_engine').value,lang=$('#lang').value;
+  if(mode==='sensevoice'){
+    const g=await senseVoiceListen(lang);
+    if(!g.length)return toast('✖ មិនឮសំឡេងនិយាយ');
+    setCues(g);S.chk=false;renderList();toast(`✔ SenseVoice បាន ${g.length} បន្ទាត់`,7000);return;
+  }
   if(!G.keys.length){$('#gemcard').open=true;return toast('ការស្តាប់ត្រូវការ Gemini API key — បន្ថែមខាងក្រោម')}
   if(!vid.duration)await new Promise(r=>{vid.addEventListener('loadedmetadata',r,{once:true});setTimeout(r,4000)});
-  const km=$('#listen_km').checked,lang=$('#lang').value;
-  aiStage(km?'gemdub':'gemls');aiProg(0.02);await loadPCM();
-  const g=await geminiListen(null,lang,km?'km':null);if(!g.length)return toast('✖ មិនឮសំឡេងនិយាយ');
-  setCues(g);S.chk=km;renderList();toast(`✔ បាន ${g.length} បន្ទាត់${km?' (ខ្មែរ)':' — ចុច «បកជាខ្មែរ»'}`,7000)});
+  const isDub=(mode==='gemini_dub');
+  aiStage(isDub?'gemdub':'gemls');aiProg(0.02);await loadPCM();
+  const g=await geminiListen(null,lang,isDub?'km':null);if(!g.length)return toast('✖ មិនឮសំឡេងនិយាយ');
+  setCues(g);S.chk=isDub;renderList();toast(`✔ បាន ${g.length} បន្ទាត់${isDub?' (បកខ្មែរ ១ ជំហាន)':' — ចុច «បកជាខ្មែរ»'}`,7000)});
 
 renderList();
 
