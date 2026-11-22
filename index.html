@@ -158,6 +158,7 @@ const fmt=(s,ms=true)=>{s=Math.max(0,s);const h=s/3600|0,m=(s%3600)/60|0,x=s%60;
 const fmtSrt=s=>fmt(s).replace('.',',');
 function parseT(t){const m=t.trim().replace(',','.').match(/^(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$/);return m?(+(m[1]||0))*3600+(+m[2])*60+parseFloat(m[3]):NaN}
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hasKhmer=s=>/[\u1780-\u17ff]/.test(s||'');
 
 const ROLE_OPTS=[
   ['','តួស្វ័យប្រវត្តិ'],
@@ -194,7 +195,7 @@ async function guard(fn){try{await fn()}catch(e){toast('✖ '+(e&&e.message||e),
 function loadVideo(f){
   if(!f)return;S.file=f;S.pcm=null;vid.src=URL.createObjectURL(f);$('#drop').classList.add('hide');
   vid.onloadedmetadata=()=>toast('✔ '+f.name);
-  vid.onerror=()=>toast('⚠ ទូរស័ព្ទមិនអាចចាក់វីដេអូនេះ (ទម្រង់ H.265/MKV?) — ប៉ុន្តែអាចនៅតែប្រើ SRT បាន',7000);
+  vid.onerror=()=>toast('⚠ Browser មិនអាចចាក់វីដេអូនេះ (ទម្រង់ H.265/MKV?) — ប៉ុន្តែអាចនៅតែប្រើ SRT បាន',7000);
 }
 $('#drop').onclick=$('#b_open').onclick=()=>$('#vidin').click();
 $('#vidin').onchange=e=>{loadVideo(e.target.files[0]);e.target.value=''};
@@ -216,9 +217,9 @@ function roleVoiceParams(role, cue){
 
 function speak(text, role='', cue=null){
   if(!text||!text.trim())return;
-  if(!('speechSynthesis' in window))return toast('ទូរស័ព្ទនេះមិនគាំទ្រការអានសំឡេង');
+  if(!('speechSynthesis' in window))return toast('ឧបករណ៍នេះមិនគាំទ្រការអានសំឡេង');
   const vs=speechSynthesis.getVoices(),v=vs.find(x=>/^km/i.test(x.lang));
-  if(!v)return toast('ទូរស័ព្ទមិនមានសំឡេងខ្មែរ — ដំឡើង «Speech Services by Google» ហើយទាញយកភាសាខ្មែរ',8000);
+  if(!v)return toast('មិនមានសំឡេងខ្មែរ — ដំឡើង «Speech Services by Google» ហើយទាញយកភាសាខ្មែរ',8000);
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text.trim());
   u.voice=v;u.lang=v.lang;
@@ -335,7 +336,7 @@ function renderList(){
   if(!S.cues.length)L.innerHTML='<div class="note" style="padding:10px;text-align:center">មិនទាន់មានអក្សរ — ចុច «ស្តាប់ និង ដាក់អក្សរ» ឬ «នាំចូល SRT»</div>';
   S.cues.forEach((c,i)=>{
     const d=document.createElement('div');d.className='row';d.dataset.id=c.id;
-    if(S.chk&&/\p{L}/u.test(c.text)&&!/[\u1780-\u17FF]/.test(c.text))d.classList.add('miss');
+    if(S.chk&&/\p{L}/u.test(c.text)&&!hasKhmer(c.text))d.classList.add('miss');
     d.innerHTML=`<div class="t"><b class="note">#${i+1}</b><input value="${fmt(c.start)}" data-k="start" inputmode="decimal"><span class="note">→</span><input value="${fmt(c.end)}" data-k="end" inputmode="decimal"><select data-k="role">${ROLE_OPTS.map(([val,lbl])=>`<option value="${val}" ${(c.role||'')===val?'selected':''}>${lbl}</option>`).join('')}</select></div>
       <textarea rows="2">${esc(c.text)}</textarea>
       <div class="a"><button class="btn sm" data-a="go">▶</button><button class="btn sm" data-a="tr">🌐</button><button class="btn sm" data-a="say">🔊</button><button class="btn sm" data-a="split">✂</button><button class="btn sm red" data-a="del">✕</button></div>`;
@@ -449,9 +450,9 @@ async function gemCall(body,info){
   throw new Error('Gemini: ព្យាយាមច្រើនដងពេក');
 }
 async function gemTranslate(texts,dst,onProg,secs){
-  const names={km:'Khmer (ភាសាខ្មែរ)',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'},L=names[dst]||dst;
+  const names={km:'Khmer',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'},L=names[dst]||dst;
   const out=[...texts],idx=texts.map((t,i)=>/[\p{L}\p{N}]/u.test(t)?i:-1).filter(i=>i>=0);
-  const ok=i=>dst!=='km'||/[\u1780-\u17FF]/.test(out[i]);
+  const ok=i=>dst!=='km'||hasKhmer(out[i]);
   async function run(list,B,strict,prog){
     const jobs=[];for(let k=0;k<list.length;k+=B)jobs.push(k);let doneN=0;
     const C=prog&&G.split!==false?Math.max(1,Math.min(6,G.keys.filter(x=>!x.bad).length)):1;
@@ -479,7 +480,7 @@ async function gemTranslate(texts,dst,onProg,secs){
   return out;
 }
 async function gemOne(text,dst,sec){
-  const names={km:'Khmer (ភាសាខ្មែរ)',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'},L=names[dst]||dst;
+  const names={km:'Khmer',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'},L=names[dst]||dst;
   const j=await gemCall({contents:[{parts:[{text:`Translate this video subtitle line into natural, fluent ${L}. Never leave source-language words (write names in ${L} script). It will be spoken aloud in about ${(+sec||2).toFixed(1)} seconds, so keep it short. Output ONLY the translation, nothing else.\n\n${text}`}]}],generationConfig:{temperature:0.2,...(G.think?{}:{thinkingConfig:{thinkingBudget:0}})}});
   return j.candidates[0].content.parts.map(p=>p.text||'').join('').trim().replace(/^["“”]+|["“”]+$/g,'');
 }
@@ -512,7 +513,7 @@ async function gtxList(texts,dst,onProg){
   if(cur.length)batches.push(cur);
   let done=0,ok=0;
   for(const b of batches){
-    let lines=[];try{lines=(await gtxOne(b.map(x=>x[1]).join('\n'),dst)).split('\n')}catch(e){if(!ok&&done===0)throw new Error('Google Translate មិនឆ្លើយតប (ពិនិត្យអ៊ីនធឺណិត ឬប្រើ Gemini)')}
+    let lines=[];try{lines=(await gtxOne(b.map(x=>x[1]).join('\n'),dst)).split('\n')}catch(e){if(!ok&&done===0)throw new Error('Google Translate មិនឆ្លើយតប')}
     if(lines.length===b.length){b.forEach(([i],n)=>{if(lines[n].trim()){out[i]=lines[n].trim();ok++}})}
     else for(const [i,t] of b){try{const r=await gtxOne(t,dst);if(r){out[i]=r;ok++}}catch(e){}await sleep(250)}
     done+=b.length;onProg&&onProg(done/Math.max(1,idx.length));await sleep(300)}
@@ -528,17 +529,17 @@ $('#b_tr').onclick=()=>guard(async()=>{
     tr=await gemTranslate(texts,'km',p=>setProg(p),secs)
   }else{aiStage('free');aiProg(0.02);tr=await gtxList(texts,'km',p=>setProg(p))}
   S.cues.forEach((c,i)=>c.text=tr[i]);S.chk=true;renderList();save();
-  const left=S.cues.filter(c=>/\p{L}/u.test(c.text)&&!/[\u1780-\u17FF]/.test(c.text)).length;
-  toast(left?`⚠ បកបាន តែនៅសល់ ${left} បន្ទាត់មិនទាន់ជាខ្មែរ (ពណ៌ទឹកក្រូច) — ចុចបកម្តងទៀត`:'✔ បកប្រែរួចគ្រប់បន្ទាត់',6000)});
+  const left=S.cues.filter(c=>/\p{L}/u.test(c.text)&&!hasKhmer(c.text)).length;
+  toast(left?`⚠ បកបាន តែនៅសល់ ${left} បន្ទាត់មិនទាន់ជាខ្មែរ — ចុចបកម្តងទៀត`:'✔ បកប្រែរួចគ្រប់បន្ទាត់',6000)});
 
 async function loadPCM(){
   const f=S.file;if(!f)throw new Error('សូមបើកវីដេអូសិន');
   if(S.pcm&&S.pcmFor===f)return S.pcm;
-  if(f.size>700*1024*1024)throw new Error('វីដេអូធំពេក (>700MB) សម្រាប់ទូរស័ព្ទ — សូមកាត់ឲ្យខ្លី ឬប្រើ «នាំចូល SRT»');
-  aiLog('កំពុងដកសំឡេងចេញពីវីដេអូ (ក្នុងទូរស័ព្ទ)…');
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('browser នេះមិនគាំទ្រការអានសំឡេង');
+  if(f.size>700*1024*1024)throw new Error('វីដេអូធំពេក (>700MB) សម្រាប់ Browser — សូមកាត់ឲ្យខ្លី ឬប្រើ «នាំចូល SRT»');
+  aiLog('កំពុងដកសំឡេងចេញពីវីដេអូ…');
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('Browser នេះមិនគាំទ្រការអានសំឡេង');
   const ctx=new AC({sampleRate:16000});let ab;
-  try{ab=await ctx.decodeAudioData(await f.arrayBuffer())}catch(e){try{ctx.close()}catch(_){}throw new Error('ទូរស័ព្ទមិនអាចដកសំឡេងពីវីដេអូនេះ — សាក Chrome ឬប្រើ «នាំចូល SRT»')}
+  try{ab=await ctx.decodeAudioData(await f.arrayBuffer())}catch(e){try{ctx.close()}catch(_){}throw new Error('Browser មិនអាចដកសំឡេងពីវីដេអូនេះ — សាក Chrome ឬប្រើ «នាំចូល SRT»')}
   const n=ab.length,ch=ab.numberOfChannels,out=new Float32Array(n);
   for(let c=0;c<ch;c++){const d=ab.getChannelData(c);for(let i=0;i<n;i++)out[i]+=d[i]/ch}
   try{ctx.close()}catch(_){}
@@ -555,7 +556,7 @@ const ROLE_SET=['female','male','girl','boy','oldw','oldm'];
 async function geminiListen(id,lang,to){
   const dur=vid.duration||0;if(!dur)throw new Error('មិនស្គាល់រយៈពេលវីដេអូ');
   const CH=45,chunks=[];for(let t0=0;t0<dur-0.3;t0+=CH)chunks.push(t0);
-  const L={km:'Khmer (ភាសាខ្មែរ)',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'}[to]||to,res=new Array(chunks.length);
+  const L={km:'Khmer',en:'English',zh:'Chinese',th:'Thai',vi:'Vietnamese',ja:'Japanese',ko:'Korean'}[to]||to,res=new Array(chunks.length);
   let done=0;aiStage(to?'gemdub':'gemls');aiProg(0.02);
   const C=G.split!==false?Math.max(1,Math.min(4,G.keys.filter(x=>!x.bad).length)):1,q=chunks.map((_,i)=>i);
   const work=async i=>{
